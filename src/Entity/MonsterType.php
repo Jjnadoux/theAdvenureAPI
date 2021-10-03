@@ -27,10 +27,20 @@ class MonsterType
      */
     private $life;
 
-    /**
-     * @ORM\Column(type="string", length=255)
+   /**
+     * @ORM\Column(type="integer")
      */
-    private $attack;
+    private $nbDice;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nbFace;
+   
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $malus;
 
     /**
      * @ORM\Column(type="integer")
@@ -66,18 +76,6 @@ class MonsterType
         return $this;
     }
 
-    public function getAttack(): ?string
-    {
-        return $this->attack;
-    }
-
-    public function setAttack(string $attack): self
-    {
-        $this->attack = $attack;
-
-        return $this;
-    }
-
     public function getArmor(): ?int
     {
         return $this->armor;
@@ -86,6 +84,66 @@ class MonsterType
     public function setArmor(int $armor): self
     {
         $this->armor = $armor;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nbDice
+     */ 
+    public function getNbDice()
+    {
+        return $this->nbDice;
+    }
+
+    /**
+     * Set the value of nbDice
+     *
+     * @return  self
+     */ 
+    public function setNbDice($nbDice)
+    {
+        $this->nbDice = $nbDice;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nbFace
+     */ 
+    public function getNbFace()
+    {
+        return $this->nbFace;
+    }
+
+    /**
+     * Set the value of nbFace
+     *
+     * @return  self
+     */ 
+    public function setNbFace($nbFace)
+    {
+        $this->nbFace = $nbFace;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of malus
+     */ 
+    public function getMalus()
+    {
+        return $this->malus;
+    }
+
+    /**
+     * Set the value of malus
+     *
+     * @return  self
+     */ 
+    public function setMalus($malus)
+    {
+        $this->malus = $malus;
 
         return $this;
     }

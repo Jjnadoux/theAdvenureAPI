@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\MonsterRepository;
+use App\Entity\MonsterType;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\MonsterRepository;
 
 /**
  * @ORM\Entity(repositoryClass=MonsterRepository::class)
@@ -17,9 +18,11 @@ class Monster
      */
     private $id;
 
+  
     /**
-     * @ORM\Column(type="integer")
-     */
+     * @var \App\Entity\MonsterType
+     * @ORM\ManytoOne(targetEntity="App\Entity\MonsterType")
+        */
     private $type;
 
     /**
@@ -27,27 +30,19 @@ class Monster
      */
     private $life;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $attack;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $armor;
+ 
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getType(): ?int
+    public function getType()
     {
         return $this->type;
     }
 
-    public function setType(int $type): self
+    public function setType($type): self
     {
         $this->type = $type;
 
@@ -62,30 +57,6 @@ class Monster
     public function setLife(int $life): self
     {
         $this->life = $life;
-
-        return $this;
-    }
-
-    public function getAttack(): ?string
-    {
-        return $this->attack;
-    }
-
-    public function setAttack(string $attack): self
-    {
-        $this->attack = $attack;
-
-        return $this;
-    }
-
-    public function getArmor(): ?int
-    {
-        return $this->armor;
-    }
-
-    public function setArmor(int $armor): self
-    {
-        $this->armor = $armor;
 
         return $this;
     }

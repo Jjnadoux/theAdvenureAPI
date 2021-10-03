@@ -17,27 +17,39 @@ class Adventure
      */
     private $id;
 
-    /**
-     * @ORM\Column(type="integer")
+   /**
+     * @var \App\Entity\Tile
+     * @ORM\ManyToOne(targetEntity="App\Entity\Tile")
      */
     private $tile;
+
+    /**
+     * @var \App\Entity\Character
+     * @ORM\OneToOne(targetEntity="App\Entity\Character")
+     */
+    private $character;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $score;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $nbTile;
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTile(): ?int
+    public function getTile() 
     {
         return $this->tile;
     }
 
-    public function setTile(int $tile): self
+    public function setTile($tile): self
     {
         $this->tile = $tile;
 
@@ -52,6 +64,46 @@ class Adventure
     public function setScore(?int $score): self
     {
         $this->score = $score;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of character
+     */ 
+    public function getCharacter()
+    {
+        return $this->character;
+    }
+
+    /**
+     * Set the value of character
+     *
+     * @return  self
+     */ 
+    public function setCharacter($character)
+    {
+        $this->character = $character;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nbTile
+     */ 
+    public function getNbTile()
+    {
+        return $this->nbTile;
+    }
+
+    /**
+     * Set the value of nbTile
+     *
+     * @return  self
+     */ 
+    public function setNbTile($nbTile)
+    {
+        $this->nbTile = $nbTile;
 
         return $this;
     }

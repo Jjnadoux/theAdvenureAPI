@@ -23,9 +23,14 @@ class TileType
     private $name;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $bonus;
+
+     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $specialEffect;
+    private $monsterAffect;
 
     public function getId(): ?int
     {
@@ -44,14 +49,43 @@ class TileType
         return $this;
     }
 
-    public function getSpecialEffect(): ?string
+   
+    /**
+     * Get })
+     */ 
+    public function getMonsterAffect()
     {
-        return $this->specialEffect;
+        return $this->monsterAffect;
     }
 
-    public function setSpecialEffect(string $specialEffect): self
+    /**
+     * Set })
+     *
+     * @return  self
+     */ 
+    public function setMonsterAffect($monsterAffect)
     {
-        $this->specialEffect = $specialEffect;
+        $this->monsterAffect = $monsterAffect;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of bonus
+     */ 
+    public function getBonus()
+    {
+        return $this->bonus;
+    }
+
+    /**
+     * Set the value of bonus
+     *
+     * @return  self
+     */ 
+    public function setBonus($bonus)
+    {
+        $this->bonus = $bonus;
 
         return $this;
     }

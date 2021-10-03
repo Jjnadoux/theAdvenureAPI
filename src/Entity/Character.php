@@ -7,12 +7,13 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=CharacterRepository::class)
+ * @ORM\Table(name="`character`")
  */
 class Character
 {
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -28,9 +29,14 @@ class Character
     private $life;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="integer")
      */
-    private $attack;
+    private $nbDice;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nbFace;
 
     /**
      *@ORM\Column(type="integer")
@@ -66,17 +72,7 @@ class Character
         return $this;
     }
 
-    public function getAttack(): ?string
-    {
-        return $this->attack;
-    }
-
-    public function setAttack(string $attack): self
-    {
-        $this->attack = $attack;
-
-        return $this;
-    }
+   
 
     public function getArmor(): ?int
     {
@@ -86,6 +82,46 @@ class Character
     public function setArmor(int $armor): self
     {
         $this->armor = $armor;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nbDice
+     */ 
+    public function getNbDice()
+    {
+        return $this->nbDice;
+    }
+
+    /**
+     * Set the value of nbDice
+     *
+     * @return  self
+     */ 
+    public function setNbDice($nbDice)
+    {
+        $this->nbDice = $nbDice;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nbFace
+     */ 
+    public function getNbFace()
+    {
+        return $this->nbFace;
+    }
+
+    /**
+     * Set the value of nbFace
+     *
+     * @return  self
+     */ 
+    public function setNbFace($nbFace)
+    {
+        $this->nbFace = $nbFace;
 
         return $this;
     }

@@ -16,57 +16,42 @@ class Tile
      * @ORM\Column(type="integer")
      */
     private $id;
-
-    /**
-     * @ORM\Column(type="integer")
+  /**
+     * @var \App\Entity\TileType
+     * @ORM\ManyToOne(targetEntity="App\Entity\TileType")
      */
     private $type;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $specialEffect;
-
-    /**
-     * @ORM\Column(type="integer")
+     * @var \App\Entity\Monster
+     * @ORM\ManyToOne(targetEntity="App\Entity\Monster")
      */
     private $monster;
 
-    public function getId(): ?int
+    public function getId()
     {
         return $this->id;
     }
 
-    public function getType(): ?int
+    public function getType() 
     {
         return $this->type;
     }
 
-    public function setType(int $type): self
+    public function setType( $type): self
     {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getSpecialEffect(): ?string
-    {
-        return $this->specialEffect;
-    }
-
-    public function setSpecialEffect(string $specialEffect): self
-    {
-        $this->specialEffect = $specialEffect;
-
-        return $this;
-    }
-
-    public function getMonster(): ?int
+   
+    public function getMonster()
     {
         return $this->monster;
     }
 
-    public function setMonster(int $monster): self
+    public function setMonster($monster): self
     {
         $this->monster = $monster;
 
