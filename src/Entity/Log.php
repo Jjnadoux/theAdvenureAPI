@@ -18,6 +18,11 @@ class Log
     private $id;
 
     /**
+     * @ORM\Column(type="date")
+     */
+    private $dateLog;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private $message;
@@ -31,6 +36,17 @@ class Log
     public function getId(): ?int
     {
         return $this->id;
+    }
+    public function getDateLog()
+    {
+        return $this->dateLog;
+    }
+
+    public function setDateLog($dateLog): self
+    {
+        $this->dateLog = $dateLog;
+
+        return $this;
     }
 
     public function getMessage()

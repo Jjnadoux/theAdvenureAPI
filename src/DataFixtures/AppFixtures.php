@@ -45,7 +45,15 @@ class AppFixtures extends Fixture
             "nbFace" => 6,
             "malus" => 0,
             "armor" => 6
-            ]
+          ],
+            4 => [
+                "name" => "Dragon",
+                "life" => 20,
+                "nbDice" => 1,
+                "nbFace" => 6,
+                "malus" => 2,
+                "armor" => 8
+                ]
         ];
     
         foreach ($monsterTypes as $monster) {

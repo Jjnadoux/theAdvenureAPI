@@ -8,6 +8,7 @@ use App\Entity\Monster;
 use App\Entity\Adventure;
 use App\Entity\Character;
 use App\Entity\Log;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 
@@ -31,6 +32,7 @@ class AppServices
 
         foreach ($messages as $message) {
             $log = new Log();
+            $log->setDateLog(new DateTime());
             $log->setMessage($message);
             $log->setAdventure($adventure);
             $this->em->persist($log);
@@ -68,6 +70,8 @@ class AppServices
          return $monster;
     }
 
+    
+
     public function createTile(Monster $monster){
 
         $tile = new Tile();
@@ -98,5 +102,62 @@ class AppServices
         return $adventure;
     }
 
+    public function monsterAttack(Adventure $adventure, Character $character){
+        
+        //recovery of the data you need
+        $typeTile = $adventure->getTile()->getType();
+        $monster = $adventure->getTile()->getMonster();
+        $monsterType = $monster->getType();
+
+        //throwing the dice
+        $valueAttack = $this->getValueAttackMonster($monsterType) - $character->getArmor() + $monsterType->getMalus();
+        $logMessage = [];
+
+        //consequence of the attack
+        if ($typeTile->getMonsterAffect() == $monsterType->getName()){
+            $valueAttack += $typeTile->getBonus();
+        }
+        
+        if ($valueAttack > $character->getLife()) {
+            $character->setLife(0);
+            $this->em->flush();
+            array_push($logMessage, "GAME OVER " . $character->getName() . " ! the monster killed you !");
+
+            $this->EndAdventure($adventure);
+           
+        } else {
+            $character->setLife($character->getLife() - $valueAttack);
+            $this->em->flush();
+            array_push($logMessage, "the monster attacked you, you loose " . $valueAttack . " life points. You have " . $character->getLife() . " life points !");
+
+        }
+
+        if ($typeTile->getMonsterAffect() == "character"){
+            $character->setLife($character->getLife() - $typeTile->getBonus());
+            $this->em->flush();
+            array_push($logMessage,"You are in the desert, you lose " . $typeTile->getBonus() . " life point !");
+        };
+
+        $this->addLog($adventure, $logMessage);
+
+
+    }
+
+    public function getValueAttackMonster($monsterType)
+    {
+        $valueAttack = 0;
+        for ($i = 0; $i < $monsterType->getNbDice(); $i++) {
+            $valueDice = rand(1, $monsterType->getNbFace());
+            $valueAttack += $valueDice;
+        }
+        return $valueAttack;
+    }
+
+    public function EndAdventure($adventure){
+
+        $score = $adventure->getScore();
+        $this->addLog($adventure,['END ADVENTURE']);
+
+    }
 
 }

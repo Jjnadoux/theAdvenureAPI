@@ -6,6 +6,7 @@ use App\Entity\Adventure;
 use App\Entity\Character;
 use App\Entity\Log;
 use App\Entity\Monster;
+use App\Entity\MonsterType;
 use App\Entity\Tile;
 use App\Services\AppServices;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,7 +55,7 @@ class AppController extends AbstractController
         $logs = $em->getRepository(Log::class)->findBy(["adventure" => $adventure]);
         $logMessage = [];
         foreach ($logs as $log) {
-            array_push($logMessage, $log->getMessage());
+            $logMessage[] = $log->getDateLog()->format('Y-m-d h:m') . ": " . $log->getMessage();
         }
         return $this->json(["adventure" => $adventure, "log" => $logMessage]);
     }
@@ -83,32 +84,87 @@ class AppController extends AbstractController
      */
     public function attack(EntityManagerInterface $em, AppServices $service, int $id)
     {
-
+        //recovery of the data you need
         $character = $em->getRepository(Character::class)->find($id);
         $adventure = $em->getRepository(Adventure::class)->findOneBy(['character' => $character]);
 
         $tile = $adventure->getTile();
         $monster = $tile->getMonster();
 
-        if ($monster->getLife() > 0) {
-            $valueAttack = $this->getValueAttack($character);
-            $logMessage = [];
-            if ($valueAttack > $monster->getLife()) {
-                $monster->setLife(0);
-                $em->flush();
-                array_push($logMessage, "bravo" . $character->getName() . " ! Le monstre a été vaincu !");
-                // $service->addLog($adventure,"bravo".$character->getName()." ! Le monstre a été vaincu !");
-            } else {
-                $monster->setLife($monster->getLife() - $valueAttack);
-                $em->flush();
-                array_push($logMessage, "le montre perd " . $valueAttack . " points de vie. Il lui reste " . $monster->getLife() . " !");
+        if ($character->getLife() == 0) {
+            return $this->json(["error" => "You are dead you can not do anything!"]);
+        } else {
+            if ($monster->getLife() > 0) {
+                //throwing the dice
+                $valueAttack = $this->getValueAttack($character) - $monster->getType()->getArmor();
+                $logMessage = [];
 
-                // $service->addLog($adventure,"le montre perd ".$valueAttack." points de vie. Il lui reste ".$monster->getLife()." !");
+                if ($valueAttack >= $monster->getLife()) {
+                    $monster->setLife(0);
+                    $em->flush();
+                    if ($monster->getType()->getName() == "Dragon") {
+                        array_push($logMessage, "Congratulation " . $character->getName() . " !!  you knocked down the final Boss! you win the game.");
+                        $service->EndAdventure($adventure);
+                    } else {
+                        array_push($logMessage, "Well done " . $character->getName() . " ! the monster has been defeated !");
+                    }
+                } else {
+                    $monster->setLife($monster->getLife() - $valueAttack);
+                    $em->flush();
+                    array_push($logMessage, "the monster loses " . $valueAttack . " life points. he has " . $monster->getLife() . " life points left !");
+                }
+
+                if ($tile->getType()->getMonsterAffect() == "character") {
+                    $character->setLife($character->getLife() - $tile->getType()->getBonus());
+                    $em->flush();
+                    array_push($logMessage, "You are in the desert, you lose " . $tile->getType()->getBonus() . " life point !");
+                };
+                $service->addLog($adventure, $logMessage);
+
+                if ($monster->getLife() > 0) {
+                    $service->monsterAttack($adventure, $character);
+                    if ($character->getLife() <= 0) {
+                        $score = $service->EndAdventure($adventure);
+                    }
+                }
             }
-            $service->addLog($adventure, $logMessage);
+        }
+        return $this->json(['character' => $character, 'adventure' => $adventure, 'tile' => $tile, 'monster' => $monster]);
+    }
+
+    /**
+     * action Attack
+     * 
+     * @Route("/character/{id}/action/move", name="action_move")
+     * 
+     * @param int $id character's id
+     */
+    public function move(EntityManagerInterface $em, AppServices $service, int $id)
+    {
+        $character = $em->getRepository(Character::class)->find($id);
+        $adventure = $em->getRepository(Adventure::class)->findOneBy(['character' => $character]);
+        $monster = $adventure->getTile()->getMonster();
+        $nbTile = $adventure->getNbTile();
+
+        if ($nbTile < 10) {
+            if ($monster->getLife() > 0) {
+                $service->monsterAttack($adventure, $character);
+                if ($character->getLife() <= 0) {
+                    $service->EndAdventure($adventure);
+                } else {
+                    $newMonster = $service->createMonster();
+                    $this->newTile($em, $service, $adventure, $newMonster);
+                }
+            } else {
+                $newMonster = $service->createMonster();
+                $this->newTile($em, $service, $adventure, $newMonster);
+            }
+        } else {
+            $boss = $this->createTheBoss($em);
+            $this->newTile($em, $service, $adventure, $boss);
         }
 
-        return $this->json(['character' => $character, 'adventure' => $adventure, 'tile' => $tile, 'monster' => $monster]);
+        return $this->json([$adventure]);
     }
 
     public function getValueAttack($character)
@@ -119,5 +175,25 @@ class AppController extends AbstractController
             $valueAttack += $valueDice;
         }
         return $valueAttack;
+    }
+
+    public function newTile(EntityManagerInterface $em, AppServices $service, $adventure, $newMonster)
+    {
+
+        $newTile = $service->createTile($newMonster);
+        $adventure->setTile($newTile);
+        $adventure->setNbTile($adventure->getNbTile() + 1);
+        $adventure->setScore($adventure->getScore() + 10);
+        $em->flush();
+    }
+    public function createTheBoss(EntityManagerInterface $em){
+        $theBoss = $em->getRepository(MonsterType::class)->findOneBy(['name'=>"Dragon"]);
+        $monster = new Monster();
+        $monster->setType($theBoss);
+        $monster->setLife($theBoss->getLife());
+        $em->persist($monster);
+        $em->flush();
+
+         return $monster;
     }
 }
