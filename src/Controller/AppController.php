@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+
 class AppController extends AbstractController
 {
     /**
@@ -75,6 +77,22 @@ class AppController extends AbstractController
         return $this->json(["character" => $character]);
     }
 
+     /**
+     * details of tile
+     * 
+     * @Route("/adventure/{id}/tile", name="details_tile")
+     * 
+     * @param int $id adventure's id
+     */
+    public function detailsTile(EntityManagerInterface $em, int $id)
+    {
+        $adventure = $em->getRepository(Adventure::class)->find($id);
+        $tile = $adventure->getTile();
+
+        return $this->json(['tile active'=>$tile],200);
+       
+    }
+
     /**
      * action Attack
      * 
@@ -88,6 +106,7 @@ class AppController extends AbstractController
         $character = $em->getRepository(Character::class)->find($id);
         $adventure = $em->getRepository(Adventure::class)->findOneBy(['character' => $character]);
 
+
         $tile = $adventure->getTile();
         $monster = $tile->getMonster();
 
@@ -97,6 +116,9 @@ class AppController extends AbstractController
             if ($monster->getLife() > 0) {
                 //throwing the dice
                 $valueAttack = $this->getValueAttack($character) - $monster->getType()->getArmor();
+                if ($valueAttack < 0) {
+                    $valueAttack = 0;
+                }
                 $logMessage = [];
 
                 if ($valueAttack >= $monster->getLife()) {
@@ -107,6 +129,8 @@ class AppController extends AbstractController
                         $service->EndAdventure($adventure);
                     } else {
                         array_push($logMessage, "Well done " . $character->getName() . " ! the monster has been defeated !");
+                        $adventure->setScore($adventure->getScore() + 5);
+                        $em->flush();
                     }
                 } else {
                     $monster->setLife($monster->getLife() - $valueAttack);
@@ -118,7 +142,7 @@ class AppController extends AbstractController
                     $character->setLife($character->getLife() - $tile->getType()->getBonus());
                     $em->flush();
                     array_push($logMessage, "You are in the desert, you lose " . $tile->getType()->getBonus() . " life point !");
-                };
+                }
                 $service->addLog($adventure, $logMessage);
 
                 if ($monster->getLife() > 0) {
@@ -127,13 +151,17 @@ class AppController extends AbstractController
                         $score = $service->EndAdventure($adventure);
                     }
                 }
+            } else {
+                $logMessage = ["the monster has already been killed, you can move!"];
             }
         }
-        return $this->json(['character' => $character, 'adventure' => $adventure, 'tile' => $tile, 'monster' => $monster]);
+
+        return $this->json([$logMessage],200);
     }
 
+
     /**
-     * action Attack
+     * action move
      * 
      * @Route("/character/{id}/action/move", name="action_move")
      * 
@@ -164,7 +192,7 @@ class AppController extends AbstractController
             $this->newTile($em, $service, $adventure, $boss);
         }
 
-        return $this->json([$adventure]);
+        return $this->json([$adventure], 200);
     }
 
     public function getValueAttack($character)
@@ -177,6 +205,32 @@ class AppController extends AbstractController
         return $valueAttack;
     }
 
+    /**
+     * action rest
+     * 
+     * @Route("/character/{id}/action/rest", name="action_rest")
+     * 
+     * @param int $id character's id
+     */
+    public function rest(EntityManagerInterface $em, AppServices $service, int $id)
+    {
+        $character = $em->getRepository(Character::class)->find($id);
+        $adventure = $em->getRepository(Adventure::class)->findOneBy(['character' => $character]);
+        $monster = $adventure->getTile()->getMonster();
+        
+        If ($monster->getLife() == 0){
+            $character->setLife($character->getLife() + 2);
+            $em->flush();
+            $message = ["After this rest, you regained 2 life points !"];
+            $service->addLog($adventure,$message);
+        } else
+        {
+            $message =["A monster is still alive here, you can't rest!"];
+            $service->addLog($adventure, $message);
+        }
+
+        return $this->json(['message'=> $message],200);
+    }
     public function newTile(EntityManagerInterface $em, AppServices $service, $adventure, $newMonster)
     {
 
@@ -186,14 +240,15 @@ class AppController extends AbstractController
         $adventure->setScore($adventure->getScore() + 10);
         $em->flush();
     }
-    public function createTheBoss(EntityManagerInterface $em){
-        $theBoss = $em->getRepository(MonsterType::class)->findOneBy(['name'=>"Dragon"]);
+    public function createTheBoss(EntityManagerInterface $em)
+    {
+        $theBoss = $em->getRepository(MonsterType::class)->findOneBy(['name' => "Dragon"]);
         $monster = new Monster();
         $monster->setType($theBoss);
         $monster->setLife($theBoss->getLife());
         $em->persist($monster);
         $em->flush();
 
-         return $monster;
+        return $monster;
     }
 }

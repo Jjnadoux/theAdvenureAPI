@@ -111,6 +111,13 @@ class AppServices
 
         //throwing the dice
         $valueAttack = $this->getValueAttackMonster($monsterType) - $character->getArmor() + $monsterType->getMalus();
+        if ($typeTile->getMonsterAffect() == $monsterType->getName()){
+            $valueAttack += $typeTile->getBonus();
+        }
+        
+        if ($valueAttack < 0){
+            $valueAttack = 0;
+        }
         $logMessage = [];
 
         //consequence of the attack
