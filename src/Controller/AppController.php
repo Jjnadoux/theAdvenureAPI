@@ -93,6 +93,20 @@ class AppController extends AbstractController
        
     }
 
+     /**
+     * list monsterType
+     * 
+     * @Route("/monsterType", name="list_monsterType")
+     * 
+     */
+    public function monsterTypeList(EntityManagerInterface $em)
+    {
+        $listMonsterType = $em->getRepository(MonsterType::class)->findAll();
+       
+        return $this->json(['monsterTypeList'=>$listMonsterType],200);
+       
+    }
+
     /**
      * action Attack
      * 
